@@ -1,0 +1,9 @@
+Django==6.0.6
+psycopg[binary]
+python-dotenv
+django-environ
+django-import-export
+openpyxl
+gunicorn
+whitenoise
+tablib[xlsx]

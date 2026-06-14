@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toilet Survey</title>
+    <link rel="stylesheet" href="{% static 'survey/css/style.css' %}">
+</head>
+<body>
+    <div class="kiosk">
+        {% block content %}{% endblock %}
+    </div>
+    <div class="footer">
+        For assistance, please call hotline {{ hotline|default:"6292 0801" }}
+    </div>
+</body>
+</html>

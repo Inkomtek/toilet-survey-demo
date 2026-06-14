@@ -1,0 +1,220 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.kiosk {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    max-height: 100vh;
+    max-width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    padding: 2rem;
+    background: #ffffff;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #1a1a2e;
+    font-weight: 600;
+}
+
+/* ── Rating emoji row ── */
+.emoji-row {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+}
+
+.emoji-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #1a1a2e;
+    cursor: pointer;
+    border: none;
+    background: none;
+    transition: transform 0.15s ease;
+}
+
+.emoji-btn:hover,
+.emoji-btn:active {
+    transform: scale(0.95);
+}
+
+.emoji-btn span.emoji {
+    font-size: 4.5rem;
+}
+
+.emoji-btn span.label {
+    font-size: 1.3rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+/* ── Reason grid ── */
+.reason-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+    width: 95%;
+    max-width: 800px;
+}
+
+.reason-grid .option-btn {
+    font-size: 1.1rem;
+    padding: 1rem;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* ── Generic option button ── */
+.option-btn {
+    font-size: 1.4rem;
+    padding: 1.3rem;
+    border: none;
+    border-radius: 14px;
+    background: #f0f2f5;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    color: #1a1a2e;
+    font-weight: 500;
+}
+
+.option-btn:hover,
+.option-btn:active {
+    background: #dde2eb;
+    transform: scale(0.98);
+}
+
+/* ── Setup form inputs ── */
+.setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 90%;
+    max-width: 420px;
+}
+
+.setup-form label {
+    font-size: 1rem;
+    text-align: left;
+    color: #555;
+    margin-top: 0.4rem;
+}
+
+.setup-form input {
+    font-size: 1.4rem;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #dde2eb;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.setup-form input:focus {
+    border-color: #1a1a2e;
+}
+
+.error-msg {
+    color: #e74c3c;
+    font-weight: 500;
+    margin-bottom: 0.8rem;
+}
+
+/* ── Logos (top-right) ── */
+.logos {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.logos img {
+    height: 40px;
+    object-fit: contain;
+}
+
+/* ── Back button (top-left) ── */
+.back-btn {
+    position: absolute;
+    top: 20px;
+    left: 24px;
+}
+
+.back-btn a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #1a1a2e;
+    text-decoration: none;
+    background: #f0f2f5;
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    transition: all 0.15s ease;
+}
+
+.back-btn a:hover,
+.back-btn a:active {
+    background: #dde2eb;
+    transform: scale(0.97);
+}
+
+/* ── Footer ── */
+.footer {
+    position: fixed;
+    bottom: 16px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #8a8f99;
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
+/* ── Force landscape on portrait devices ── */
+@media (orientation: portrait) {
+    .kiosk {
+        transform: rotate(90deg);
+        transform-origin: center;
+        width: 100vh;
+        height: 100vw;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -50vw;
+        margin-left: -50vh;
+    }
+}

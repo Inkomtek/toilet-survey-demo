@@ -1,0 +1,22 @@
+{% extends 'survey/base.html' %}
+{% block content %}
+
+<div class="back-btn">
+    <a href="{% url 'core:rating' %}">&larr; Back</a>
+</div>
+
+<h1>Why "{{ rating_display }}"?</h1>
+
+<form method="post" action="{% url 'core:submit' %}">
+    {% csrf_token %}
+    <input type="hidden" name="rating" value="{{ rating }}">
+    <div class="reason-grid">
+        {% for reason in reasons %}
+        <button type="submit" name="reason_id" value="{{ reason.id }}" class="option-btn">
+            {{ reason.text }}
+        </button>
+        {% endfor %}
+    </div>
+</form>
+
+{% endblock %}

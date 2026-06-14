@@ -1,0 +1,25 @@
+{% extends 'survey/base.html' %}
+{% block content %}
+
+<h1>Please rate your experience</h1>
+
+<div class="emoji-row">
+    <a href="{% url 'core:reason' 'EXCELLENT' %}" class="emoji-btn">
+        <span class="emoji">😍</span>
+        <span class="label">Excellent</span>
+    </a>
+    <a href="{% url 'core:reason' 'GOOD' %}" class="emoji-btn">
+        <span class="emoji">😊</span>
+        <span class="label">Good</span>
+    </a>
+    <a href="{% url 'core:reason' 'AVERAGE' %}" class="emoji-btn">
+        <span class="emoji">😢</span>
+        <span class="label">Average</span>
+    </a>
+    <a href="{% url 'core:reason' 'POOR' %}" class="emoji-btn">
+        <span class="emoji">😠</span>
+        <span class="label">Poor</span>
+    </a>
+</div>
+
+{% endblock %}

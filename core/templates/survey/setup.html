@@ -1,0 +1,45 @@
+{% extends 'survey/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="logos">
+    <img src="{% static 'survey/img/iss_logo.png' %}" alt="ISS">
+    <img src="{% static 'survey/img/wsm_logo.png' %}" alt="WSM">
+</div>
+
+<h1>Device Activation</h1>
+
+{% if error %}
+    <p class="error-msg">{{ error }}</p>
+{% endif %}
+
+<form method="post" action="{% url 'core:setup' %}" id="setup-form">
+    {% csrf_token %}
+    <div class="setup-form">
+        <label for="device_id">Device ID</label>
+        <input type="text" id="device_id" name="device_id"
+               placeholder="e.g. L2-M-KIOSK" autocomplete="off" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+               placeholder="Enter device password" required>
+
+        <button type="submit" class="option-btn"
+                style="margin-top: 1.2rem; background: #1a1a2e; color: #fff;">
+            Activate Device
+        </button>
+    </div>
+</form>
+
+<script>
+    document.getElementById('setup-form').addEventListener('submit', function () {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(() => {});
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+        }
+    });
+</script>
+
+{% endblock %}
