@@ -35,8 +35,8 @@ body {
 }
 
 h1 {
-    font-size: 2.5rem;
-    margin-bottom: 2rem;
+    font-size: 3.5rem;
+    margin-bottom: 3rem;
     color: #1a1a2e;
     font-weight: 600;
 }
@@ -45,7 +45,7 @@ h1 {
 .emoji-row {
     display: flex;
     justify-content: center;
-    gap: 3rem;
+    gap: 4rem;
     flex-wrap: wrap;
 }
 
@@ -67,13 +67,13 @@ h1 {
 }
 
 .emoji-btn span.emoji {
-    font-size: 4.5rem;
+    font-size: 8rem;
 }
 
 .emoji-btn span.label {
-    font-size: 1.3rem;
-    margin-top: 0.5rem;
-    font-weight: 500;
+    font-size: 1.8rem;
+    margin-top: 1rem;
+    font-weight: 600;
 }
 
 /* ── Reason grid ── */
