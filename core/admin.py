@@ -26,6 +26,46 @@ class SurveyResponseResource(resources.ModelResource):
         return str(obj.device) if obj.device else ""
 
 
+class CleanerLogResource(resources.ModelResource):
+    cleaner_name = fields.Field(attribute="cleaner", column_name="cleaner_name")
+    cleaner_id = fields.Field(attribute="cleaner", column_name="cleaner_id")
+    device_name = fields.Field(attribute="device", column_name="device_name")
+    actions_taken = fields.Field(column_name="actions_taken")
+
+    class Meta:
+        model = CleanerLog
+        fields = (
+            "id",
+            "cleaner_id",
+            "cleaner_name",
+            "device_name",
+            "actions_taken",
+            "comment",
+            "logged_at",
+        )
+        export_order = (
+            "id",
+            "cleaner_id",
+            "cleaner_name",
+            "device_name",
+            "actions_taken",
+            "comment",
+            "logged_at",
+        )
+
+    def dehydrate_cleaner_name(self, obj):
+        return obj.cleaner.name if obj.cleaner else ""
+
+    def dehydrate_cleaner_id(self, obj):
+        return obj.cleaner.cleaner_id if obj.cleaner else ""
+
+    def dehydrate_device_name(self, obj):
+        return str(obj.device) if obj.device else ""
+
+    def dehydrate_actions_taken(self, obj):
+        return ", ".join(obj.actions.values_list("name", flat=True))
+
+
 @admin.register(Reason)
 class ReasonAdmin(ImportExportModelAdmin):
     resource_class = ReasonResource
@@ -65,6 +105,7 @@ class CleanerAdmin(admin.ModelAdmin):
 
 @admin.register(CleanerLog)
 class CleanerLogAdmin(ImportExportModelAdmin):
+    resource_class = CleanerLogResource
     list_display = ("cleaner", "device", "actions_display", "logged_at")
     list_filter = ("device", "cleaner", "logged_at")
     readonly_fields = ("logged_at",)
