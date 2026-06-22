@@ -22,4 +22,167 @@
     </a>
 </div>
 
+<!-- Cleaner button bottom-left -->
+<div style="position: absolute; bottom: 40px; left: 24px;">
+    <button onclick="openCleanerModal()" class="cleaner-btn">🧹 Cleaner Log</button>
+</div>
+
+<!-- Cleaner Modal -->
+<div id="cleanerModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <h2>Cleaner Log</h2>
+
+        <div id="modal-step-1">
+            <div class="modal-form">
+                <label>Cleaner ID</label>
+                <input type="text" id="cleaner_id" placeholder="Enter your ID" autocomplete="off">
+                <label>Passcode</label>
+                <input type="password" id="passcode" inputmode="numeric" placeholder="Enter passcode">
+                <p id="auth-error" style="color:#e74c3c; display:none;">Invalid ID or passcode</p>
+                <div class="modal-actions">
+                    <button onclick="closeModal()" class="btn-secondary">Cancel</button>
+                    <button onclick="verifyAndShowActions()" class="btn-primary">Next</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-step-2" style="display:none;">
+            <p style="font-size:1.1rem; margin-bottom:1rem;">
+                Welcome, <strong id="cleaner-name"></strong>! Select actions done:
+            </p>
+            <div id="actions-list" class="actions-grid"></div>
+            <div class="modal-form" style="margin-top:1rem;">
+                <label>Comment (optional)</label>
+                <textarea id="log-comment" rows="2"
+                    style="font-size:1.1rem; padding:0.8rem; border-radius:10px; border:1px solid #dde2eb; resize:none; width:100%;"></textarea>
+            </div>
+            <p id="submit-error" style="color:#e74c3c; display:none;">Please select at least one action</p>
+            <div class="modal-actions">
+                <button onclick="closeModal()" class="btn-secondary">Cancel</button>
+                <button onclick="submitLog()" class="btn-primary">Submit</button>
+            </div>
+        </div>
+
+        <div id="modal-step-3" style="display:none; text-align:center; padding: 2rem 0;">
+            <p style="font-size:2rem;">✅</p>
+            <p style="font-size:1.3rem; margin-top:0.5rem;">Log submitted successfully!</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let availableActions = [];
+    let selectedActions = [];
+    let verifiedCleanerName = '';
+
+    function openCleanerModal() {
+        document.getElementById('cleanerModal').style.display = 'flex';
+        document.getElementById('modal-step-1').style.display = 'block';
+        document.getElementById('modal-step-2').style.display = 'none';
+        document.getElementById('modal-step-3').style.display = 'none';
+        document.getElementById('cleaner_id').value = '';
+        document.getElementById('passcode').value = '';
+        document.getElementById('auth-error').style.display = 'none';
+        selectedActions = [];
+    }
+
+    function closeModal() {
+        document.getElementById('cleanerModal').style.display = 'none';
+    }
+
+    async function verifyAndShowActions() {
+        const cleanerId = document.getElementById('cleaner_id').value.trim();
+        const passcode = document.getElementById('passcode').value.trim();
+
+        if (!cleanerId || !passcode) return;
+
+        // Fetch actions first
+        const res = await fetch("{% url 'core:cleaner_log' %}");
+        const data = await res.json();
+        availableActions = data.actions;
+
+        // Try auth by submitting with empty actions to verify
+        const authRes = await fetch("{% url 'core:cleaner_log' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                cleaner_id: cleanerId,
+                passcode: passcode,
+                actions: [],
+                comment: '__verify_only__'
+            })
+        });
+
+        if (!authRes.ok) {
+            document.getElementById('auth-error').style.display = 'block';
+            return;
+        }
+
+        const authData = await authRes.json();
+        verifiedCleanerName = authData.cleaner_name;
+
+        // Show step 2
+        document.getElementById('auth-error').style.display = 'none';
+        document.getElementById('modal-step-1').style.display = 'none';
+        document.getElementById('modal-step-2').style.display = 'block';
+        document.getElementById('cleaner-name').textContent = verifiedCleanerName;
+
+        // Render action checkboxes
+        const container = document.getElementById('actions-list');
+        container.innerHTML = '';
+        availableActions.forEach(action => {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn';
+            btn.textContent = action.name;
+            btn.dataset.id = action.id;
+            btn.onclick = () => toggleAction(btn, action.id);
+            container.appendChild(btn);
+        });
+    }
+
+    function toggleAction(btn, id) {
+        if (selectedActions.includes(id)) {
+            selectedActions = selectedActions.filter(a => a !== id);
+            btn.classList.remove('selected');
+        } else {
+            selectedActions.push(id);
+            btn.classList.add('selected');
+        }
+    }
+
+    async function submitLog() {
+        const cleanerId = document.getElementById('cleaner_id').value.trim();
+        const passcode = document.getElementById('passcode').value.trim();
+        const comment = document.getElementById('log-comment').value.trim();
+
+        if (selectedActions.length === 0) {
+            document.getElementById('submit-error').style.display = 'block';
+            return;
+        }
+
+        const res = await fetch("{% url 'core:cleaner_log' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                cleaner_id: cleanerId,
+                passcode: passcode,
+                actions: selectedActions,
+                comment: comment
+            })
+        });
+
+        if (res.ok) {
+            document.getElementById('modal-step-2').style.display = 'none';
+            document.getElementById('modal-step-3').style.display = 'block';
+            setTimeout(() => closeModal(), 2500);
+        }
+    }
+</script>
+
 {% endblock %}

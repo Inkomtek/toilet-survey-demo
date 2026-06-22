@@ -110,7 +110,7 @@ h1 {
     font-weight: 500;
 }
 
-.option-btn:hover,
+.option-btn:hover,4
 .option-btn:active {
     background: #dde2eb;
     transform: scale(0.98);
@@ -205,17 +205,133 @@ h1 {
     pointer-events: none;
 }
 
-/* ── Force landscape on portrait devices ── */
-@media (orientation: portrait) {
-    .kiosk {
-        transform: rotate(90deg);
-        transform-origin: center;
-        width: 100vh;
-        height: 100vw;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        margin-top: -50vw;
-        margin-left: -50vh;
-    }
+/* ── Cleaner button ── */
+.cleaner-btn {
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid #dde2eb;
+    border-radius: 12px;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.cleaner-btn:hover {
+    background: #dde2eb;
+}
+
+/* ── Modal overlay ── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modal-box h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.2rem;
+    color: #1a1a2e;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.modal-form label {
+    font-size: 1rem;
+    color: #555;
+    margin-top: 0.4rem;
+}
+
+.modal-form input {
+    font-size: 1.3rem;
+    padding: 0.9rem;
+    border-radius: 10px;
+    border: 1px solid #dde2eb;
+    outline: none;
+}
+
+.modal-form input:focus {
+    border-color: #1a1a2e;
+}
+
+/* ── Action toggle buttons ── */
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.7rem;
+    margin-top: 0.5rem;
+}
+
+.action-btn {
+    font-size: 1.1rem;
+    padding: 0.9rem;
+    border: 2px solid #dde2eb;
+    border-radius: 12px;
+    background: #f0f2f5;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+}
+
+.action-btn.selected {
+    background: #1a1a2e;
+    color: #fff;
+    border-color: #1a1a2e;
+}
+
+/* ── Modal action buttons ── */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+}
+
+.btn-primary {
+    font-size: 1.1rem;
+    padding: 0.8rem 1.8rem;
+    border: none;
+    border-radius: 12px;
+    background: #1a1a2e;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+.btn-secondary {
+    font-size: 1.1rem;
+    padding: 0.8rem 1.8rem;
+    border: 1px solid #dde2eb;
+    border-radius: 12px;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+    background: #dde2eb;
 }

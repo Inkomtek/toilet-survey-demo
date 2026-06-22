@@ -2,10 +2,10 @@ from django.db import models
 
 
 class Rating(models.TextChoices):
-    EXCELLENT = 'EXCELLENT', 'Excellent'
-    GOOD = 'GOOD', 'Good'
-    AVERAGE = 'AVERAGE', 'Average'
-    POOR = 'POOR', 'Poor'
+    EXCELLENT = "EXCELLENT", "Excellent"
+    GOOD = "GOOD", "Good"
+    AVERAGE = "AVERAGE", "Average"
+    POOR = "POOR", "Poor"
 
 
 class Reason(models.Model):
@@ -15,7 +15,7 @@ class Reason(models.Model):
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ['rating', 'order']
+        ordering = ["rating", "order"]
 
     def __str__(self):
         return f"[{self.get_rating_display()}] {self.text}"
@@ -25,7 +25,7 @@ class Device(models.Model):
     device_id = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100)
     name = models.CharField(max_length=100, blank=True)
-    hotline = models.CharField(max_length=50, blank=True, default='6292 0801')
+    hotline = models.CharField(max_length=50, blank=True, default="6292 0801")
     is_active = models.BooleanField(default=True)
     last_seen = models.DateTimeField(auto_now=True)
 
@@ -41,3 +41,39 @@ class SurveyResponse(models.Model):
 
     def __str__(self):
         return f"{self.rating} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+class CleanerAction(models.Model):
+    name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order"]
+
+    def __str__(self):
+        return self.name
+
+
+class Cleaner(models.Model):
+    cleaner_id = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=100)
+    passcode = models.CharField(max_length=10)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.cleaner_id} - {self.name}"
+
+
+class CleanerLog(models.Model):
+    cleaner = models.ForeignKey(Cleaner, on_delete=models.SET_NULL, null=True)
+    device = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True, blank=True)
+    actions = models.ManyToManyField(CleanerAction, blank=True)
+    comment = models.TextField(blank=True)
+    logged_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.cleaner} @ {self.logged_at.strftime('%Y-%m-%d %H:%M')}"
+
+    def actions_display(self):
+        return ", ".join(self.actions.values_list("name", flat=True))
