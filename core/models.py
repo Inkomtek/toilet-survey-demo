@@ -35,12 +35,16 @@ class Device(models.Model):
 
 class SurveyResponse(models.Model):
     rating = models.CharField(max_length=20, choices=Rating.choices)
-    reason = models.ForeignKey(Reason, on_delete=models.SET_NULL, null=True, blank=True)
+    # Changed from ForeignKey to ManyToManyField to support multiple reasons
+    reasons = models.ManyToManyField(Reason, blank=True)
     device = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.rating} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+    def reasons_display(self):
+        return ", ".join(self.reasons.values_list("text", flat=True))
 
 
 class CleanerAction(models.Model):
@@ -58,7 +62,7 @@ class CleanerAction(models.Model):
 class Cleaner(models.Model):
     cleaner_id = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=100)
-    passcode = models.CharField(max_length=10)
+    pin = models.CharField(max_length=4)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

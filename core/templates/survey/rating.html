@@ -4,22 +4,22 @@
 <h1>Please rate your experience</h1>
 
 <div class="emoji-row">
-    <a href="{% url 'core:reason' 'EXCELLENT' %}" class="emoji-btn">
+    <button class="emoji-btn" onclick="openRatingModal('EXCELLENT')">
         <span class="emoji">😍</span>
         <span class="label">Excellent</span>
-    </a>
-    <a href="{% url 'core:reason' 'GOOD' %}" class="emoji-btn">
+    </button>
+    <button class="emoji-btn" onclick="openRatingModal('GOOD')">
         <span class="emoji">😊</span>
         <span class="label">Good</span>
-    </a>
-    <a href="{% url 'core:reason' 'AVERAGE' %}" class="emoji-btn">
+    </button>
+    <button class="emoji-btn" onclick="openRatingModal('AVERAGE')">
         <span class="emoji">😢</span>
         <span class="label">Average</span>
-    </a>
-    <a href="{% url 'core:reason' 'POOR' %}" class="emoji-btn">
+    </button>
+    <button class="emoji-btn" onclick="openRatingModal('POOR')">
         <span class="emoji">😠</span>
         <span class="label">Poor</span>
-    </a>
+    </button>
 </div>
 
 <!-- Cleaner button bottom-left -->
@@ -27,7 +27,33 @@
     <button onclick="openCleanerModal()" class="cleaner-btn">🧹 Cleaner Log</button>
 </div>
 
-<!-- Cleaner Modal -->
+<!-- ── Rating / Reason Modal ── -->
+<div id="ratingModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+
+        <!-- Step 1: Reasons (multi-select) -->
+        <div id="rating-step-1">
+            <h2 id="rating-modal-title">Why this rating?</h2>
+            <p style="color:#666; margin-bottom:1rem; font-size:1rem;">Select all that apply (optional)</p>
+            <div id="reasons-list" class="actions-grid"></div>
+            <p id="reasons-loading" style="color:#888; font-size:1rem; padding:1rem 0;">Loading…</p>
+            <div class="modal-actions">
+                <button onclick="closeRatingModal()" class="btn-secondary">Cancel</button>
+                <button onclick="submitRating()" class="btn-primary">Submit</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Thank you -->
+        <div id="rating-step-2" style="display:none; text-align:center; padding: 2rem 0;">
+            <p style="font-size:3rem;">✅</p>
+            <p style="font-size:1.5rem; font-weight:600; margin-top:0.8rem;">Thank you!</p>
+            <p style="color:#666; margin-top:0.5rem; font-size:1rem;">Your feedback has been recorded.</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── Cleaner Modal ── -->
 <div id="cleanerModal" class="modal-overlay" style="display:none;">
     <div class="modal-box">
         <h2>Cleaner Log</h2>
@@ -36,9 +62,12 @@
             <div class="modal-form">
                 <label>Cleaner ID</label>
                 <input type="text" id="cleaner_id" placeholder="Enter your ID" autocomplete="off">
-                <label>Passcode</label>
-                <input type="password" id="passcode" inputmode="numeric" placeholder="Enter passcode">
-                <p id="auth-error" style="color:#e74c3c; display:none;">Invalid ID or passcode</p>
+                <label style="margin-top:1rem;">PIN</label>
+                <!-- 4-dot display -->
+                <input type="password" id="pin" inputmode="numeric" pattern="[0-9]*"
+                    maxlength="4" placeholder="4-digit PIN" autocomplete="off"
+                    style="letter-spacing:0.5rem; font-size:1.5rem; text-align:center;">
+                <p id="auth-error" style="color:#e74c3c; display:none; margin-top:0.4rem; text-align:center;">Invalid ID or PIN</p>
                 <div class="modal-actions">
                     <button onclick="closeModal()" class="btn-secondary">Cancel</button>
                     <button onclick="verifyAndShowActions()" class="btn-primary">Next</button>
@@ -71,17 +100,103 @@
 </div>
 
 <script>
+    // ── Rating modal ──────────────────────────────────────────────
+    let currentRating = null;
+    let selectedReasons = [];
+
+    async function openRatingModal(rating) {
+        currentRating = rating;
+        selectedReasons = [];
+
+        const labels = {
+            EXCELLENT: 'Why "Excellent"?',
+            GOOD: 'Why "Good"?',
+            AVERAGE: 'Why "Average"?',
+            POOR: 'Why "Poor"?',
+        };
+        document.getElementById('rating-modal-title').textContent = labels[rating] || 'Why this rating?';
+
+        // Reset UI
+        document.getElementById('rating-step-1').style.display = 'block';
+        document.getElementById('rating-step-2').style.display = 'none';
+        document.getElementById('reasons-list').innerHTML = '';
+        document.getElementById('reasons-loading').style.display = 'block';
+        document.getElementById('ratingModal').style.display = 'flex';
+
+        // Fetch reasons
+        try {
+            const res = await fetch(`{% url 'core:get_reasons' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', rating));
+            const data = await res.json();
+            document.getElementById('reasons-loading').style.display = 'none';
+
+            const container = document.getElementById('reasons-list');
+            if (data.reasons.length === 0) {
+                // No reasons configured — submit immediately
+                container.innerHTML = '<p style="color:#888; font-size:1rem;">No specific reasons available.</p>';
+            } else {
+                data.reasons.forEach(reason => {
+                    const btn = document.createElement('button');
+                    btn.className = 'action-btn';
+                    btn.textContent = reason.text;
+                    btn.dataset.id = reason.id;
+                    btn.onclick = () => toggleReason(btn, reason.id);
+                    container.appendChild(btn);
+                });
+            }
+        } catch (e) {
+            document.getElementById('reasons-loading').textContent = 'Could not load reasons.';
+        }
+    }
+
+    function toggleReason(btn, id) {
+        if (selectedReasons.includes(id)) {
+            selectedReasons = selectedReasons.filter(r => r !== id);
+            btn.classList.remove('selected');
+        } else {
+            selectedReasons.push(id);
+            btn.classList.add('selected');
+        }
+    }
+
+    async function submitRating() {
+        const res = await fetch("{% url 'core:submit' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                rating: currentRating,
+                reason_ids: selectedReasons,
+            })
+        });
+
+        if (res.ok) {
+            document.getElementById('rating-step-1').style.display = 'none';
+            document.getElementById('rating-step-2').style.display = 'block';
+            setTimeout(() => closeRatingModal(), 2500);
+        }
+    }
+
+    function closeRatingModal() {
+        document.getElementById('ratingModal').style.display = 'none';
+    }
+
+    // ── Cleaner modal ─────────────────────────────────────────────
     let availableActions = [];
     let selectedActions = [];
     let verifiedCleanerName = '';
 
+    // ── PIN pad state ─────────────────────────────────────────────
+    let pinValue = '';
+    
     function openCleanerModal() {
         document.getElementById('cleanerModal').style.display = 'flex';
         document.getElementById('modal-step-1').style.display = 'block';
         document.getElementById('modal-step-2').style.display = 'none';
         document.getElementById('modal-step-3').style.display = 'none';
         document.getElementById('cleaner_id').value = '';
-        document.getElementById('passcode').value = '';
+        document.getElementById('pin').value = '';
         document.getElementById('auth-error').style.display = 'none';
         selectedActions = [];
     }
@@ -92,16 +207,14 @@
 
     async function verifyAndShowActions() {
         const cleanerId = document.getElementById('cleaner_id').value.trim();
-        const passcode = document.getElementById('passcode').value.trim();
+        const pin = document.getElementById('pin').value.trim();
 
-        if (!cleanerId || !passcode) return;
+        if (!cleanerId || pin.length !== 4) return;
 
-        // Fetch actions first
         const res = await fetch("{% url 'core:cleaner_log' %}");
         const data = await res.json();
         availableActions = data.actions;
 
-        // Try auth by submitting with empty actions to verify
         const authRes = await fetch("{% url 'core:cleaner_log' %}", {
             method: 'POST',
             headers: {
@@ -110,7 +223,7 @@
             },
             body: JSON.stringify({
                 cleaner_id: cleanerId,
-                passcode: passcode,
+                pin: pin,
                 actions: [],
                 comment: '__verify_only__'
             })
@@ -118,19 +231,18 @@
 
         if (!authRes.ok) {
             document.getElementById('auth-error').style.display = 'block';
+            resetPin();
             return;
         }
 
         const authData = await authRes.json();
         verifiedCleanerName = authData.cleaner_name;
 
-        // Show step 2
         document.getElementById('auth-error').style.display = 'none';
         document.getElementById('modal-step-1').style.display = 'none';
         document.getElementById('modal-step-2').style.display = 'block';
         document.getElementById('cleaner-name').textContent = verifiedCleanerName;
 
-        // Render action checkboxes
         const container = document.getElementById('actions-list');
         container.innerHTML = '';
         availableActions.forEach(action => {
@@ -155,7 +267,7 @@
 
     async function submitLog() {
         const cleanerId = document.getElementById('cleaner_id').value.trim();
-        const passcode = document.getElementById('passcode').value.trim();
+        const pin = document.getElementById('pin').value.trim()
         const comment = document.getElementById('log-comment').value.trim();
 
         if (selectedActions.length === 0) {
@@ -171,7 +283,7 @@
             },
             body: JSON.stringify({
                 cleaner_id: cleanerId,
-                passcode: passcode,
+                pin: pin,
                 actions: selectedActions,
                 comment: comment
             })

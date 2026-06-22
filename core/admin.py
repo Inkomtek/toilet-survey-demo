@@ -12,15 +12,15 @@ class ReasonResource(resources.ModelResource):
 
 
 class SurveyResponseResource(resources.ModelResource):
-    reason_text = fields.Field(attribute="reason", column_name="reason_text")
+    reasons_text = fields.Field(column_name="reasons_text")
     device_name = fields.Field(attribute="device", column_name="device_name")
 
     class Meta:
         model = SurveyResponse
-        fields = ("id", "rating", "reason_text", "device_name", "created_at")
+        fields = ("id", "rating", "reasons_text", "device_name", "created_at")
 
-    def dehydrate_reason_text(self, obj):
-        return obj.reason.text if obj.reason else ""
+    def dehydrate_reasons_text(self, obj):
+        return obj.reasons_display()
 
     def dehydrate_device_name(self, obj):
         return str(obj.device) if obj.device else ""
@@ -85,9 +85,10 @@ class DeviceAdmin(admin.ModelAdmin):
 @admin.register(SurveyResponse)
 class SurveyResponseAdmin(ImportExportModelAdmin):
     resource_class = SurveyResponseResource
-    list_display = ("rating", "reason", "device", "created_at")
+    list_display = ("rating", "reasons_display", "device", "created_at")
     list_filter = ("rating", "device", "created_at")
     readonly_fields = ("created_at",)
+    filter_horizontal = ("reasons",)
 
 
 @admin.register(CleanerAction)
@@ -101,6 +102,7 @@ class CleanerAdmin(admin.ModelAdmin):
     list_display = ("cleaner_id", "name", "is_active")
     list_editable = ("is_active",)
     search_fields = ("cleaner_id", "name")
+    readonly_fields = ()  # pin is editable in the form
 
 
 @admin.register(CleanerLog)

@@ -1,7 +1,7 @@
 import json
 
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
 from .models import (
@@ -53,7 +53,6 @@ def setup_view(request):
 
             request.session["device_id"] = device.device_id
 
-            # Request fullscreen on form submit (handled in template JS)
             return redirect("core:rating")
 
     return render(request, "survey/setup.html", {"error": error})
@@ -74,57 +73,42 @@ def rating_view(request):
     )
 
 
-def reason_view(request, rating):
+def get_reasons_view(request, rating):
+    """Returns reasons for a given rating as JSON (used by the modal)."""
     device = get_active_device(request)
     if not device:
-        return redirect("core:setup")
+        return JsonResponse({"error": "Device not active"}, status=403)
 
     rating = rating.upper()
-    reasons = Reason.objects.filter(rating=rating, is_active=True)
-    return render(
-        request,
-        "survey/reason.html",
-        {
-            "rating": rating,
-            "rating_display": dict(Rating.choices).get(rating, rating),
-            "reasons": reasons,
-            "hotline": device.hotline,
-        },
+    reasons = list(
+        Reason.objects.filter(rating=rating, is_active=True).values("id", "text")
     )
+    return JsonResponse({"rating": rating, "reasons": reasons})
 
 
 def submit_response(request):
     device = get_active_device(request)
     if not device:
-        return redirect("core:setup")
+        return JsonResponse({"error": "Device not active"}, status=403)
 
     if request.method == "POST":
-        rating = request.POST.get("rating")
-        reason_id = request.POST.get("reason_id")
-        reason = get_object_or_404(Reason, id=reason_id) if reason_id else None
+        data = json.loads(request.body)
+        rating = data.get("rating", "").upper()
+        reason_ids = data.get("reason_ids", [])
 
-        SurveyResponse.objects.create(
+        if rating not in dict(Rating.choices):
+            return JsonResponse({"error": "Invalid rating"}, status=400)
+
+        survey = SurveyResponse.objects.create(
             rating=rating,
-            reason=reason,
             device=device,
         )
-        return redirect("core:thank_you")
+        if reason_ids:
+            survey.reasons.set(Reason.objects.filter(id__in=reason_ids))
 
-    return redirect("core:rating")
+        return JsonResponse({"success": True})
 
-
-def thank_you_view(request):
-    device = get_active_device(request)
-    if not device:
-        return redirect("core:setup")
-
-    return render(
-        request,
-        "survey/thank_you.html",
-        {
-            "hotline": device.hotline,
-        },
-    )
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
 
 def cleaner_log_view(request):
@@ -141,13 +125,13 @@ def cleaner_log_view(request):
     if request.method == "POST":
         data = json.loads(request.body)
         cleaner_id = data.get("cleaner_id", "").strip()
-        passcode = data.get("passcode", "").strip()
+        pin = data.get("pin", "").strip()
         action_ids = data.get("actions", [])
         comment = data.get("comment", "").strip()
 
         try:
             cleaner = Cleaner.objects.get(
-                cleaner_id=cleaner_id, passcode=passcode, is_active=True
+                cleaner_id=cleaner_id, pin=pin, is_active=True
             )
         except Cleaner.DoesNotExist:
             return JsonResponse({"error": "Invalid cleaner ID or passcode"}, status=400)
